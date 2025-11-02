@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Execute DAO</title>
+    <style>
+        :root {
+            --dark-bg: #0a0a0a;
+            --darker-bg: #050505;
+            --accent-red: #8b0000;
+            --accent-red-dark: #5a0000;
+            --accent-green: #006400;
+            --accent-green-dark: #004d00;
+            --solana-purple: #9945FF;
+            --solana-green: #14F195;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --border-color: #333333;
+            --transition-slow: 0.5s ease;
+            --transition-medium: 0.3s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace;
+        }
+        
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image: url('background.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        /* Header Styles */
+        header {
+            text-align: center;
+            padding: 2rem 0;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+        }
+        
+        .logo-container {
+            margin-bottom: 1rem;
+
+        }
+        
+        .logo {
+            max-width: 120px;
+            height: auto;
+                        border-radius: 40%;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            letter-spacing: 0.2em;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            font-weight: 300;
+        }
+        
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.5;
+        }
+        
+        .solana-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(45deg, var(--solana-purple), var(--solana-green));
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+        
+        .twitter-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color var(--transition-medium);
+        }
+        
+        .twitter-link:hover {
+            color: var(--text-primary);
+        }
+        
+        /* Wallet Connection */
+        .wallet-section {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .wallet-button {
+            background: linear-gradient(45deg, var(--solana-purple), var(--solana-green));
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all var(--transition-medium);
+        }
+        
+        .wallet-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(153, 69, 255, 0.3);
+        }
+        
+        .wallet-connected {
+            background-color: var(--accent-green);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        /* Main Content Layout */
+        .main-content {
+            display: flex;
+            gap: 2rem;
+            flex: 1;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+        }
+        
+        /* DAO Panel Styles */
+        .dao-panel {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .stat-card {
+            background-color: rgba(10, 10, 10, 0.8);
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        
+        .vote-progress {
+            background-color: rgba(10, 10, 10, 0.8);
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background-color: #333;
+            margin: 1rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(45deg, var(--solana-purple), var(--solana-green));
+            width: 0%;
+            transition: width var(--transition-slow);
+        }
+        
+        .progress-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        .timer-container {
+            text-align: center;
+            padding: 1.5rem;
+            background-color: rgba(10, 10, 10, 0.8);
+            border: 1px solid var(--border-color);
+        }
+        
+        .timer-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem;
+        }
+        
+        .timer {
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: 0.1em;
+        }
+        
+        .voting-interface {
+            background-color: rgba(10, 10, 10, 0.8);
+            border: 1px solid var(--border-color);
+            padding: 2rem;
+        }
+        
+        .voting-title {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-size: 1.2rem;
+        }
+        
+        .vote-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        @media (max-width: 600px) {
+            .vote-options {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .vote-option {
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: all var(--transition-medium);
+            text-align: center;
+        }
+        
+        .vote-option:hover {
+            background-color: rgba(50, 50, 50, 0.3);
+        }
+        
+        .vote-option.selected {
+            border-color: var(--accent-red);
+            background-color: rgba(139, 0, 0, 0.1);
+        }
+        
+        .vote-option.yes {
+            border-color: var(--accent-red);
+        }
+        
+        .vote-option.no {
+            border-color: var(--accent-green);
+        }
+        
+        .vote-option-title {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        
+        .vote-option.yes .vote-option-title {
+            color: var(--accent-red);
+        }
+        
+        .vote-option.no .vote-option-title {
+            color: var(--accent-green);
+        }
+        
+        .vote-option-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        
+        .vote-actions {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .vote-button {
+            flex: 1;
+            padding: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            border: none;
+            font-size: 1.1rem;
+            transition: all var(--transition-medium);
+        }
+        
+        .vote-button.yes {
+            background-color: var(--accent-red);
+            color: white;
+        }
+        
+        .vote-button.yes:hover {
+            background-color: var(--accent-red-dark);
+        }
+        
+        .vote-button.no {
+            background-color: var(--accent-green);
+            color: white;
+        }
+        
+        .vote-button.no:hover {
+            background-color: var(--accent-green-dark);
+        }
+        
+        .vote-button:disabled {
+            background-color: #333;
+            color: #666;
+            cursor: not-allowed;
+        }
+        
+        /* Token Info */
+        .token-info {
+            background-color: rgba(10, 10, 10, 0.8);
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+        
+        .token-info-title {
+            text-align: center;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-size: 1.1rem;
+        }
+        
+        .token-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        .token-detail {
+            text-align: center;
+        }
+        
+        .token-detail-value {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .token-detail-label {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+        
+        /* Suggestions Panel */
+        .suggestions-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: rgba(10, 10, 10, 0.8);
+            border: 1px solid var(--border-color);
+            max-height: 600px;
+        }
+        
+        .suggestions-header {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-size: 1.1rem;
+        }
+        
+        .suggestions-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+        
+        .suggestion-item {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: background-color var(--transition-medium);
+        }
+        
+        .suggestion-item:hover {
+            background-color: rgba(50, 50, 50, 0.3);
+        }
+        
+        .suggestion-title {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .suggestion-body {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .suggestion-votes {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+        
+        .vote-count {
+            background-color: var(--accent-red);
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 2px;
+        }
+        
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--transition-slow);
+        }
+        
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal {
+            background-color: var(--darker-bg);
+            border: 1px solid var(--border-color);
+            width: 90%;
+            max-width: 500px;
+            padding: 2rem;
+            position: relative;
+            transform: translateY(20px);
+            transition: transform var(--transition-slow);
+        }
+        
+        .modal-overlay.active .modal {
+            transform: translateY(0);
+        }
+        
+        .modal-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .modal-title {
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.5rem;
+        }
+        
+        .modal-body {
+            margin-bottom: 2rem;
+        }
+        
+        .modal-warning {
+            background-color: rgba(139, 0, 0, 0.2);
+            border-left: 3px solid var(--accent-red);
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .modal-actions {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+        
+        .modal-button {
+            flex: 1;
+            padding: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            background-color: transparent;
+            color: var(--text-primary);
+            transition: all var(--transition-medium);
+        }
+        
+        .modal-button.primary {
+            background-color: var(--accent-red);
+            border-color: var(--accent-red);
+        }
+        
+        .modal-button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .modal-button.primary:hover {
+            background-color: var(--accent-red-dark);
+        }
+        
+        /* Nuke Sequence Styles */
+        .nuke-sequence {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: black;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 2s ease;
+        }
+        
+        .nuke-sequence.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .nuke-text {
+            font-size: 3rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            text-align: center;
+            margin-bottom: 2rem;
+            color: var(--accent-red);
+        }
+        
+        .distribution-animation {
+            width: 200px;
+            height: 200px;
+            border: 2px solid var(--accent-red);
+            border-radius: 50%;
+            position: relative;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+        
+        .distribution-animation::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle, transparent 30%, var(--accent-red) 70%);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(0.8); opacity: 0.7; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.8); opacity: 0.7; }
+        }
+        
+        .final-state {
+            text-align: center;
+            max-width: 600px;
+            padding: 2rem;
+        }
+        
+        .final-title {
+            font-size: 2.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            margin-bottom: 1.5rem;
+            color: var(--accent-red);
+        }
+        
+        .final-message {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+        
+        /* User Vote Status */
+        .user-vote-status {
+            background-color: rgba(10, 10, 10, 0.8);
+            border: 1px solid var(--border-color);
+            padding: 1rem;
+            text-align: center;
+            margin-top: 1rem;
+        }
+        
+        .user-vote-indicator {
+            color: var(--accent-red);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-size: 0.9rem;
+        }
+        
+        /* Utility Classes */
+        .hidden {
+            display: none;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .mt-2 {
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo-container">
+                <img src="WE_DGAF_IF_THERE_IS_NO_VOLUME__2_-removebg-preview.png" alt="Execute DAO" class="logo">
+            </div>
+            <h1>Execute DAO</h1>
+
+            <p class="subtitle">A Solana-based collective with one purpose: to end it all. When consensus is reached, the treasury is distributed and the project terminated forever.</p>
+            
+            <div class="wallet-section">
+                <button class="wallet-button" id="connect-wallet">
+                    Connect Solana Wallet
+                </button>
+            </div>
+            
+            <a href="https://x.com/ExecuteDAO" class="twitter-link" target="_blank">Follow on Twitter</a>
+        </header>
+        
+        <div class="main-content">
+            <div class="dao-panel">
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-holders">1,247</div>
+                        <div class="stat-label">Token Holders</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="yes-votes">0</div>
+                        <div class="stat-label">Yes Votes</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="no-votes">0</div>
+                        <div class="stat-label">No Votes</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="vote-percentage">0%</div>
+                        <div class="stat-label">For Termination</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="treasury-balance">2.34 SOL</div>
+                        <div class="stat-label">Treasury</div>
+                    </div>
+                </div>
+                
+                <div class="vote-progress">
+                    <div class="progress-labels">
+                        <span>Against Termination</span>
+                        <span>For Termination</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <div class="progress-labels">
+                        <span id="no-percentage">0%</span>
+                        <span id="yes-percentage">0%</span>
+                    </div>
+                </div>
+                
+                <div class="timer-container">
+                    <div class="timer-label">Vote Closes In</div>
+                    <div class="timer" id="vote-timer">72:00:00</div>
+                </div>
+                
+                <div class="voting-interface">
+                    <h2 class="voting-title">Current Proposal: Terminate Execute DAO</h2>
+                    
+                    <div class="vote-options">
+                        <div class="vote-option yes" id="vote-option-yes">
+                            <div class="vote-option-title">Execute</div>
+                            <div class="vote-option-description">Vote to terminate the DAO, distribute treasury in SOL, and burn the token.</div>
+                        </div>
+                        <div class="vote-option no" id="vote-option-no">
+                            <div class="vote-option-title">Continue</div>
+                            <div class="vote-option-description">Vote to continue the DAO and maintain operations as usual.</div>
+                        </div>
+                    </div>
+                    
+                    <div class="vote-actions">
+                        <button class="vote-button yes" id="vote-yes-button">Vote Execute</button>
+                        <button class="vote-button no" id="vote-no-button">Vote Continue</button>
+                    </div>
+                    
+                    <div class="user-vote-status" id="user-vote-status" style="display: none;">
+                        <div class="user-vote-indicator">You have already voted: <span id="user-vote-choice"></span></div>
+                    </div>
+                </div>
+                
+                <div class="token-info">
+                    <div class="token-info-title">Token Information</div>
+                    <div class="token-details">
+                        <div class="token-detail">
+                            <div class="token-detail-value" id="token-supply">10,000,000</div>
+                            <div class="token-detail-label">Total Supply</div>
+                        </div>
+                        <div class="token-detail">
+                            <div class="token-detail-value" id="token-price">$0.054</div>
+                            <div class="token-detail-label">Current Price</div>
+                        </div>
+                        <div class="token-detail">
+                            <div class="token-detail-value" id="token-symbol">EXEC</div>
+                            <div class="token-detail-label">Token Symbol</div>
+                        </div>
+                        <div class="token-detail">
+                            <div class="token-detail-value" id="token-market-cap">$540,000</div>
+                            <div class="token-detail-label">Market Cap</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="suggestions-panel">
+                <div class="suggestions-header">
+                    Conditions for Execution
+                </div>
+                <div class="suggestions-list" id="suggestions-list">
+                    <!-- Suggestions will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Confirmation Modal for Yes Vote -->
+    <div class="modal-overlay" id="confirmation-modal-yes">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Confirm Execution Vote</h2>
+            </div>
+            <div class="modal-body">
+                <div class="modal-warning">
+                    <strong>Warning:</strong> This vote is for terminating Execute DAO. If the majority votes EXECUTE, the SOL treasury will be distributed and the token burned permanently.
+                </div>
+                <p>You are about to cast your vote to <strong>EXECUTE</strong> Execute DAO. This action cannot be undone.</p>
+                <div class="suggestion-prefill" id="suggestion-prefill-yes" style="display: none; margin-top: 1rem; padding: 1rem; background: rgba(50,50,50,0.3);">
+                    <strong>Reason:</strong> <span id="selected-suggestion-text-yes"></span>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-button" id="cancel-button-yes">Cancel</button>
+                <button class="modal-button primary" id="confirm-vote-yes">Confirm Vote</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Confirmation Modal for No Vote -->
+    <div class="modal-overlay" id="confirmation-modal-no">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Confirm Continuation Vote</h2>
+            </div>
+            <div class="modal-body">
+                <p>You are about to cast your vote to <strong>CONTINUE</strong> Execute DAO. The project will maintain operations if the majority votes CONTINUE.</p>
+                <div class="suggestion-prefill" id="suggestion-prefill-no" style="display: none; margin-top: 1rem; padding: 1rem; background: rgba(50,50,50,0.3);">
+                    <strong>Reason:</strong> <span id="selected-suggestion-text-no"></span>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="modal-button" id="cancel-button-no">Cancel</button>
+                <button class="modal-button" id="confirm-vote-no" style="background-color: var(--accent-green); border-color: var(--accent-green);">Confirm Vote</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Nuke Sequence -->
+    <div class="nuke-sequence" id="nuke-sequence">
+        <div class="nuke-text">Threshold Reached</div>
+        <div class="distribution-animation"></div>
+        <div class="nuke-text">SOL Distribution Initiated</div>
+        <div class="nuke-text">Token Burn In Progress</div>
+    </div>
+    
+    <!-- Final State -->
+    <div class="nuke-sequence" id="final-state">
+        <div class="final-state">
+            <h2 class="final-title">Project Terminated</h2>
+            <p class="final-message">
+                Execute DAO has reached consensus to terminate. The SOL treasury has been distributed to all token holders. 
+                The EXEC token has been burned and the program account closed.
+            </p>
+            <p class="final-message">
+                This project is now archived on the Solana blockchain. The DAO is dead.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Demo data and state
+        const demoData = {
+            totalHolders: 4,
+            yesVotes: 1,
+            noVotes: 2,
+            totalSupply: 1000000000,
+            treasuryBalance: 2.34,
+            tokenPrice: 0.00000,
+            tokenSymbol: "EXECUTE",
+            votePercentage: 0,
+            userVoted: false,
+            userVoteChoice: null,
+            isTerminated: false,
+            selectedSuggestion: null,
+            walletConnected: false
+        };
+
+        // Suggestions data
+        const suggestions = [
+            { id: 1, title: "Mission accomplished", body: "The original purpose has been fulfilled", votes: 42 },
+            { id: 2, title: "Irreparable divergence", body: "The community can no longer reach consensus on fundamental issues", votes: 28 },
+            { id: 3, title: "Existential threat", body: "External factors make continuation impossible", votes: 15 },
+            { id: 4, title: "Treasury misuse risk", body: "Prevent potential misuse of SOL treasury by terminating now", votes: 9 },
+            { id: 5, title: "Philosophical conclusion", body: "The experiment has reached its natural end", votes: 7 }
+        ];
+
+        // DOM Elements
+        const connectWalletButton = document.getElementById('connect-wallet');
+        const voteOptionYes = document.getElementById('vote-option-yes');
+        const voteOptionNo = document.getElementById('vote-option-no');
+        const voteYesButton = document.getElementById('vote-yes-button');
+        const voteNoButton = document.getElementById('vote-no-button');
+        const confirmationModalYes = document.getElementById('confirmation-modal-yes');
+        const confirmationModalNo = document.getElementById('confirmation-modal-no');
+        const cancelButtonYes = document.getElementById('cancel-button-yes');
+        const cancelButtonNo = document.getElementById('cancel-button-no');
+        const confirmVoteYes = document.getElementById('confirm-vote-yes');
+        const confirmVoteNo = document.getElementById('confirm-vote-no');
+        const nukeSequence = document.getElementById('nuke-sequence');
+        const finalState = document.getElementById('final-state');
+        const suggestionsList = document.getElementById('suggestions-list');
+        const suggestionPrefillYes = document.getElementById('suggestion-prefill-yes');
+        const suggestionPrefillNo = document.getElementById('suggestion-prefill-no');
+        const selectedSuggestionTextYes = document.getElementById('selected-suggestion-text-yes');
+        const selectedSuggestionTextNo = document.getElementById('selected-suggestion-text-no');
+        const userVoteStatus = document.getElementById('user-vote-status');
+        const userVoteChoice = document.getElementById('user-vote-choice');
+        
+        // Stats elements
+        const totalHoldersEl = document.getElementById('total-holders');
+        const yesVotesEl = document.getElementById('yes-votes');
+        const noVotesEl = document.getElementById('no-votes');
+        const votePercentageEl = document.getElementById('vote-percentage');
+        const treasuryBalanceEl = document.getElementById('treasury-balance');
+        const voteTimerEl = document.getElementById('vote-timer');
+        const progressFill = document.getElementById('progress-fill');
+        const yesPercentageEl = document.getElementById('yes-percentage');
+        const noPercentageEl = document.getElementById('no-percentage');
+        
+        // Token info elements
+        const tokenSupplyEl = document.getElementById('token-supply');
+        const tokenPriceEl = document.getElementById('token-price');
+        const tokenSymbolEl = document.getElementById('token-symbol');
+        const tokenMarketCapEl = document.getElementById('token-market-cap');
+
+        // Timer persistence
+        const VOTE_DURATION = 72 * 60 * 60 * 1000; // 72 hours in milliseconds
+        let voteEndTime = localStorage.getItem('executeDAO_voteEndTime');
+        
+        if (!voteEndTime) {
+            // Set initial vote end time if not already set
+            voteEndTime = Date.now() + VOTE_DURATION;
+            localStorage.setItem('executeDAO_voteEndTime', voteEndTime);
+        } else {
+            voteEndTime = parseInt(voteEndTime);
+        }
+
+        // User vote state
+        let userVoteState = localStorage.getItem('executeDAO_userVote');
+        if (userVoteState) {
+            userVoteState = JSON.parse(userVoteState);
+            demoData.userVoted = true;
+            demoData.userVoteChoice = userVoteState.choice;
+            
+            // Update vote counts to reflect user's previous vote
+            if (userVoteState.choice === 'yes') {
+                demoData.yesVotes = userVoteState.count;
+            } else {
+                demoData.noVotes = userVoteState.count;
+            }
+        }
+
+        // Initialize the UI
+        function init() {
+            updateStats();
+            renderSuggestions();
+            startTimer();
+            updateUserVoteStatus();
+            updateTokenInfo();
+            
+            // Check if we're already in terminated state
+            if (localStorage.getItem('executeDAO_terminated') === 'true') {
+                triggerTerminationSequence();
+            }
+        }
+
+        // Update statistics display
+        function updateStats() {
+            totalHoldersEl.textContent = demoData.totalHolders.toLocaleString();
+            yesVotesEl.textContent = demoData.yesVotes.toLocaleString();
+            noVotesEl.textContent = demoData.noVotes.toLocaleString();
+            
+            const totalVotes = demoData.yesVotes + demoData.noVotes;
+            demoData.votePercentage = totalVotes > 0 ? (demoData.yesVotes / totalVotes) * 100 : 0;
+            
+            votePercentageEl.textContent = demoData.votePercentage.toFixed(1) + '%';
+            treasuryBalanceEl.textContent = demoData.treasuryBalance.toLocaleString(undefined, {
+                minimumFractionDigits: 1,
+                maximumFractionDigits: 1
+            }) + ' SOL';
+            
+            // Update progress bar
+            progressFill.style.width = demoData.votePercentage + '%';
+            yesPercentageEl.textContent = demoData.votePercentage.toFixed(1) + '%';
+            noPercentageEl.textContent = (100 - demoData.votePercentage).toFixed(1) + '%';
+            
+            // Disable buttons if user has already voted or project is terminated
+            if (demoData.userVoted || demoData.isTerminated || !demoData.walletConnected) {
+                voteYesButton.disabled = true;
+                voteNoButton.disabled = true;
+            } else {
+                voteYesButton.disabled = false;
+                voteNoButton.disabled = false;
+            }
+        }
+
+        // Update token information
+        function updateTokenInfo() {
+            tokenSupplyEl.textContent = demoData.totalSupply.toLocaleString();
+            tokenPriceEl.textContent = '$' + demoData.tokenPrice.toFixed(3);
+            tokenSymbolEl.textContent = demoData.tokenSymbol;
+            
+            const marketCap = demoData.totalSupply * demoData.tokenPrice;
+            tokenMarketCapEl.textContent = '$' + marketCap.toLocaleString(undefined, {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            });
+        }
+
+        // Update user vote status display
+        function updateUserVoteStatus() {
+            if (demoData.userVoted) {
+                userVoteStatus.style.display = 'block';
+                userVoteChoice.textContent = demoData.userVoteChoice === 'yes' ? 'EXECUTE' : 'CONTINUE';
+                userVoteChoice.style.color = demoData.userVoteChoice === 'yes' ? 'var(--accent-red)' : 'var(--accent-green)';
+                
+                // Highlight the selected vote option
+                if (demoData.userVoteChoice === 'yes') {
+                    voteOptionYes.classList.add('selected');
+                } else {
+                    voteOptionNo.classList.add('selected');
+                }
+            }
+        }
+
+        // Render suggestions list
+        function renderSuggestions() {
+            suggestionsList.innerHTML = '';
+            
+            suggestions.forEach(suggestion => {
+                const suggestionEl = document.createElement('div');
+                suggestionEl.className = 'suggestion-item';
+                suggestionEl.innerHTML = `
+                    <div class="suggestion-title">${suggestion.title}</div>
+                    <div class="suggestion-body">${suggestion.body}</div>
+                    <div class="suggestion-votes">
+                        <span class="vote-count">${suggestion.votes}</span> supporters
+                    </div>
+                `;
+                
+                suggestionEl.addEventListener('click', () => {
+                    demoData.selectedSuggestion = suggestion;
+                    selectedSuggestionTextYes.textContent = `${suggestion.title}: ${suggestion.body}`;
+                    selectedSuggestionTextNo.textContent = `${suggestion.title}: ${suggestion.body}`;
+                    suggestionPrefillYes.style.display = 'block';
+                    suggestionPrefillNo.style.display = 'block';
+                });
+                
+                suggestionsList.appendChild(suggestionEl);
+            });
+        }
+
+        // Timer function
+        function startTimer() {
+            function updateTimer() {
+                const now = Date.now();
+                const timeLeft = voteEndTime - now;
+                
+                if (timeLeft <= 0) {
+                    // Vote period ended
+                    voteTimerEl.textContent = "VOTE ENDED";
+                    checkVoteResult();
+                    return;
+                }
+                
+                const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+                
+                voteTimerEl.textContent = 
+                    `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+            
+            updateTimer();
+            setInterval(updateTimer, 1000);
+        }
+
+        // Check if vote threshold is reached
+        function checkVoteResult() {
+            if (demoData.votePercentage > 50) {
+                triggerTerminationSequence();
+            }
+        }
+
+        // Trigger the termination sequence
+        function triggerTerminationSequence() {
+            demoData.isTerminated = true;
+            localStorage.setItem('executeDAO_terminated', 'true');
+            
+            // Show nuke sequence
+            nukeSequence.classList.add('active');
+            
+            // After animation, show final state
+            setTimeout(() => {
+                nukeSequence.classList.remove('active');
+                finalState.classList.add('active');
+            }, 6000);
+        }
+
+        // Simulate wallet connection
+        function connectWallet() {
+            // In a real implementation, this would connect to a Solana wallet like Phantom
+            demoData.walletConnected = true;
+            connectWalletButton.textContent = "Wallet Connected";
+            connectWalletButton.classList.add('wallet-connected');
+            connectWalletButton.disabled = true;
+            
+            // Enable voting buttons
+            voteYesButton.disabled = false;
+            voteNoButton.disabled = false;
+            
+            // Show notification
+            alert("Wallet connected successfully (demo mode)");
+        }
+
+        // Simulate a vote
+        function simulateVote(voteType) {
+            // In a real implementation, this would connect to a Solana wallet and sign a transaction
+            // For demo purposes, we'll simulate the vote
+            
+            // Calculate a random vote power between 1000 and 5000 tokens
+            const votePower = Math.floor(Math.random() * 4000) + 1000;
+            
+            // Update demo data
+            if (voteType === 'yes') {
+                demoData.yesVotes += 1;
+            } else {
+                demoData.noVotes += 1;
+            }
+            
+            // Mark user as voted
+            demoData.userVoted = true;
+            demoData.userVoteChoice = voteType;
+            
+            // Store user vote in localStorage
+            localStorage.setItem('executeDAO_userVote', JSON.stringify({
+                choice: voteType,
+                count: voteType === 'yes' ? demoData.yesVotes : demoData.noVotes
+            }));
+            
+            // Update UI
+            updateStats();
+            updateUserVoteStatus();
+            
+            // Check if threshold is reached
+            if (demoData.votePercentage > 50) {
+                setTimeout(triggerTerminationSequence, 1000);
+            }
+        }
+
+        // Event Listeners
+        connectWalletButton.addEventListener('click', connectWallet);
+
+        voteYesButton.addEventListener('click', () => {
+            if (!demoData.walletConnected) {
+                alert("Please connect your Solana wallet first");
+                return;
+            }
+            confirmationModalYes.classList.add('active');
+        });
+
+        voteNoButton.addEventListener('click', () => {
+            if (!demoData.walletConnected) {
+                alert("Please connect your Solana wallet first");
+                return;
+            }
+            confirmationModalNo.classList.add('active');
+        });
+
+        cancelButtonYes.addEventListener('click', () => {
+            confirmationModalYes.classList.remove('active');
+            demoData.selectedSuggestion = null;
+            suggestionPrefillYes.style.display = 'none';
+        });
+
+        cancelButtonNo.addEventListener('click', () => {
+            confirmationModalNo.classList.remove('active');
+            demoData.selectedSuggestion = null;
+            suggestionPrefillNo.style.display = 'none';
+        });
+
+        confirmVoteYes.addEventListener('click', () => {
+            confirmationModalYes.classList.remove('active');
+            simulateVote('yes');
+            demoData.selectedSuggestion = null;
+            suggestionPrefillYes.style.display = 'none';
+        });
+
+        confirmVoteNo.addEventListener('click', () => {
+            confirmationModalNo.classList.remove('active');
+            simulateVote('no');
+            demoData.selectedSuggestion = null;
+            suggestionPrefillNo.style.display = 'none';
+        });
+
+        // Vote option selection
+        voteOptionYes.addEventListener('click', () => {
+            if (!demoData.userVoted && !demoData.isTerminated && demoData.walletConnected) {
+                confirmationModalYes.classList.add('active');
+            }
+        });
+
+        voteOptionNo.addEventListener('click', () => {
+            if (!demoData.userVoted && !demoData.isTerminated && demoData.walletConnected) {
+                confirmationModalNo.classList.add('active');
+            }
+        });
+
+        // Initialize the application
+        init();
+    </script>
+</body>
+</html>
